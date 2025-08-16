@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Fiscalização</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f8f9fc;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      max-width: 900px;
+      margin: auto;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .foto-container {
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    .foto-item {
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 6px;
+      background: #fafafa;
+      text-align: center;
+    }
+    .foto-item img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 5px;
+    }
+    .legenda {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>RELATÓRIO DE FISCALIZAÇÃO</h1>
+  <form id="relatorioForm">
+    <div class="grid">
+      <div>
+        <label>Local:</label>
+        <input type="text" id="local">
+      </div>
+      <div>
+        <label>Relatório nº:</label>
+        <input type="text" id="numero">
+      </div>
+      <div>
+        <label>Data:</label>
+        <input type="date" id="data">
+      </div>
+      <div>
+        <label>Órgãos envolvidos:</label>
+        <input type="text" id="fiscais">
+      </div>
+    </div>
+
+    <label>Solicitante:</label>
+    <input type="text" id="solicitante">
+
+    <label>Referência / Assunto:</label>
+    <textarea id="referencia"></textarea>
+
+    <h2>RELATÓRIO FOTOGRÁFICO</h2>
+    <input type="file" id="fotos" multiple accept="image/*">
+    <div class="foto-container" id="preview"></div>
+
+    <button type="button" onclick="gerarPDF()">Gerar PDF</button>
+  </form>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    document.getElementById('fotos').addEventListener('change', function(){
+      const preview = document.getElementById('preview');
+      preview.innerHTML = "";
+      for(let file of this.files){
+        const reader = new FileReader();
+        reader.onload = function(e){
+          const div = document.createElement('div');
+          div.classList.add('foto-item');
+          div.innerHTML = `
+            <img src="${e.target.result}" alt="foto">
+            <input type="text" placeholder="Legenda da foto" class="legenda">
+          `;
+          preview.appendChild(div);
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function gerarPDF(){
+      const doc = new jsPDF();
+      let y = 20;
+
+      doc.setFontSize(14);
+      doc.text("RELATÓRIO DE FISCALIZAÇÃO", 105, y, {align:"center"});
+      y += 15;
+
+      function addText(label, value){
+        if(value) {
+          doc.setFontSize(11);
+          doc.text(`${label}: ${value}`, 15, y);
+          y += 8;
+        }
+      }
+
+      addText("Local", document.getElementById('local').value);
+      addText("Relatório nº", document.getElementById('numero').value);
+      addText("Data", document.getElementById('data').value);
+      addText("Órgãos envolvidos", document.getElementById('fiscais').value);
+      addText("Solicitante", document.getElementById('solicitante').value);
+      addText("Referência / Assunto", document.getElementById('referencia').value);
+
+      y += 10;
+      doc.setFontSize(12);
+      doc.text("RELATÓRIO FOTOGRÁFICO", 15, y);
+      y += 10;
+
+      const fotos = document.querySelectorAll('.foto-item');
+      let x = 15;
+      fotos.forEach((foto, index) => {
+        const img = foto.querySelector('img');
+        const legenda = foto.querySelector('.legenda').value;
+
+        doc.addImage(img.src, 'JPEG', x, y, 80, 60);
+        doc.text(legenda, x, y + 65);
+
+        if(x === 15){
+          x = 110;
+        } else {
+          x = 15;
+          y += 80;
+        }
+
+        if(y > 240){
+          doc.addPage();
+          y = 20;
+          x = 15;
+        }
+      });
+
+      doc.save("relatorio.pdf");
+    }
+  </script>
+</body>
+</html>
