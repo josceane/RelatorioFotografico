@@ -151,24 +151,8 @@
       });
     }
 
- /* Marca d’água */
-.formulario::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 600px;          /* largura da marca d’água */
-  height: 600px;         /* altura da marca d’água */
-  background: url('fundo.png') no-repeat center center;
-  background-size: contain;
-  opacity: 0.08;         /* transparência da marca d’água */
-  transform: translate(-50%, -50%);
-  z-index: 0;
-}  
-    
     async function gerarPDF(){
       const doc = new jsPDF();
-
       doc.setFontSize(14);
       doc.text("RELATÓRIO DE FISCALIZAÇÃO", 105, 15, {align:"center"});
       doc.setFontSize(11);
